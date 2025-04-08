@@ -1,0 +1,73 @@
+---
+# Warp Workflow Template
+# Refer to template-usage-guide.md
+# Use Australian English Spelling
+# Use yamllint to validate upon completion
+
+# ------------------------------------------
+# Required fields
+# ------------------------------------------
+name: "Display_Tree_CurrentDirectory"
+command: |
+  # PURPOSE: Display directory tree structure with customisable depth
+  # CONTEXT: Used for visualising folder hierarchies and project structure
+  # VERIFICATION: Confirms directory exists and displays properly formatted tree output
+  if [ -d "{{target_directory}}" ]; then
+    if [ "{{show_hidden}}" = "true" ]; then
+      echo "Displaying directory tree for '{{target_directory}}' with depth {{depth}} (including hidden files):"
+      tree -L {{depth}} --dirsfirst -a "{{target_directory}}"
+    else
+      echo "Displaying directory tree for '{{target_directory}}' with depth {{depth}}:"
+      tree -L {{depth}} --dirsfirst "{{target_directory}}"
+    fi
+  else
+    echo "Error: Directory '{{target_directory}}' not found or not accessible"
+    exit 1
+  fi
+
+# ------------------------------------------
+# Optional fields
+# ------------------------------------------
+description: >-
+  PURPOSE: Display directory structure in a hierarchical tree format |
+  CONTEXT: Use when needing to visualise folder organisation or create documentation |
+  COMPLEXITY: Basic
+
+# Optional tags for categorisation and discoverability
+tags:
+  - "filesystem"
+  - "navigation"
+  - "complexity:basic"
+  - "directory"
+
+# Optional arguments - parameterised portions of the command
+arguments:
+  - name: depth
+    description: "Maximum display depth (1-5 recommended)"
+    default_value: "2"
+  - name: target_directory
+    description: "Target directory (defaults to current directory)"
+    default_value: "."
+    enum_command: >-
+      find "$PWD" -type d -maxdepth 2 -not -path '*/\.*'
+  - name: show_hidden
+    description: "Whether to show hidden files and directories"
+    default_value: "false"
+    enum_variants:
+      - "true"
+      - "false"
+  - name: format_options
+    description: "formatting options for tree command"
+    default_value: "--dirsfirst"
+
+# Optional attribution fields
+# author: "ezxagent"
+# author_url: "https://studiozyx.com.au"
+# source_url: "https://studiozyx.com.au"
+
+# Optional shell compatibility
+shells:
+  - zsh
+  - bash
+  - fish
+

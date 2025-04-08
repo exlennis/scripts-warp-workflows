@@ -1,0 +1,38 @@
+---
+name: List directories with tree
+command: "echo -e \"\\n=== Home Directory ===\";\ntree -L {{depth}} -d --dirsfirst --noreport {{home_directory}} 2>/dev/null;\n\necho -e \"\\n=== iCloud Directory ===\";\ntree -L {{depth-extra}} -d --dirsfirst --noreport {{icloud_directory}} 2>/dev/null;\n\necho -e \"\\n=== Dropbox Directory ===\";\ntree -L {{depth-extra}} -d --dirsfirst --noreport {{dropbox_directory}} 2>/dev/null;\n\necho -e \"\\n=== Projects ===\";\ntree -L {{depth}} -d --dirsfirst --noreport {{projects_directory}} 2>/dev/null;\n\necho -e \"\\n=== Media Directory (Network) ===\";\ntree -L {{depth}} -d --dirsfirst --noreport {{media_directory}} 2>/dev/null;"
+description: This command lists directory structures at a specified depth for different locations on the system using the tree command.
+arguments:
+  - name: depth
+    arg_type: Text
+    description: specifies the level of directory depth to display
+    default_value: "2"
+  - name: home_directory
+    arg_type: Text
+    description: "the path to the user's home directory"
+    default_value: /Users/ez
+  - name: depth-extra
+    arg_type: Text
+    description: specifies the alternate depth for selected directories
+    default_value: "3"
+  - name: icloud_directory
+    arg_type: Text
+    description: "the path to the user's iCloud directory"
+    default_value: /Users/ez/Library/CloudStorage
+  - name: dropbox_directory
+    arg_type: Text
+    description: "the path to the user's Dropbox directory"
+    default_value: /Users/ez/Library/CloudStorage/Dropbox-Personal
+  - name: projects_directory
+    arg_type: Text
+    description: "the path to the user's Projects directory"
+    default_value: /Users/ez/Library/CloudStorage/Dropbox-Personal/-PROJECTS-
+  - name: media_directory
+    arg_type: Text
+    description: the path to the network media directory
+    default_value: /Volumes/∆Media
+tags: []
+source_url: ~
+author: ~
+author_url: ~
+shells: []

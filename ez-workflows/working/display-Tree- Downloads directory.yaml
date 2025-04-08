@@ -1,0 +1,14 @@
+---
+name: Generate and Display Directory Tree of Downloads Folder
+command: "{\n  echo \"=== Downloads Directory ===\"\n  echo '```'\n  tree -L {{level}} -a --dirs_first --noreport \"/Users/ez/Downloads\" 2>/dev/null\n  echo '```'\n  echo\n  tree \"/Users/ez/Downloads\" --noreporpt | tail -n 1\n} > \"/Users/ez/Desktop/tree_downloads.md\" && cat \"/Users/ez/Desktop/tree_downloads.md\""
+description: This command generates a Markdown file with a directory tree of the Downloads folder and displays it.
+arguments:
+  - name: level
+    arg_type: Text
+    description: specifies the depth of the directory tree to display
+    default_value: "2"
+tags: []
+source_url: ~
+author: ~
+author_url: ~
+shells: []

@@ -1,4 +1,4 @@
-# Workflows File Format
+# Warp Workflows YAML File Format
 
 The workflow file format is a [yaml](https://yaml.org/) file and must have either a `.yml ` or `yaml` extension. If you're new to YAML and want to learn more, see "[Learn YAML in Y minutes](https://learnxinyminutes.com/docs/yaml/)."
 

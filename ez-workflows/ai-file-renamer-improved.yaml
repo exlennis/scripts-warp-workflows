@@ -1,0 +1,292 @@
+---
+name: AI-File-Renamer-Improved
+command: |
+  # === Enhanced AI-Powered File Renaming Workflow ===
+
+  # Configuration
+  TARGET_PATH="${1:-$(pwd)}"
+  CASE_STYLE="${2:-kebab-case}"
+  MAX_CHARS="${3:-20}"
+  LANGUAGE="${4:-English}"
+  DRY_RUN="${5:-false}"
+
+  # Set up logging
+  LOG_FILE="/tmp/ai-renamer-$(date +%Y%m%d-%H%M%S).log"
+  exec > >(tee -a "$LOG_FILE") 2>&1
+  echo "📝 Logging to $LOG_FILE"
+
+  # Validate inputs
+  if [ ! -d "$TARGET_PATH" ]; then
+    echo "❌ Error: Directory $TARGET_PATH does not exist or is not accessible"
+    exit 1
+  fi
+
+  # Validate case style
+  case "$CASE_STYLE" in
+    kebab-case|camel-case|snake_case|PascalCase)
+      # Valid style
+      ;;
+    *)
+      echo "⚠️ Warning: Unrecognized case style '$CASE_STYLE'. Using kebab-case"
+      CASE_STYLE="kebab-case"
+      ;;
+  esac
+
+  # Validate max chars is a positive number
+  if ! [[ "$MAX_CHARS" =~ ^[0-9]+$ ]] || [ "$MAX_CHARS" -lt 1 ]; then
+    echo "⚠️ Warning: Invalid maximum characters '$MAX_CHARS'. Using 20"
+    MAX_CHARS=20
+  fi
+
+  # Check for dependencies
+  for cmd in find stat file head; do
+    if ! command -v "$cmd" &> /dev/null; then
+      echo "❌ Required command not found: $cmd"
+      exit 1
+    fi
+  done
+
+  echo "📂 Analysing files in: $TARGET_PATH"
+  echo "⚙️ Using settings: $CASE_STYLE format, $MAX_CHARS max chars"
+  echo "$LANGUAGE language"
+  if [ "$DRY_RUN" = true ]; then
+    echo "🔍 DRY RUN MODE: No files will be renamed"
+  fi
+  echo ""
+
+  # Create temporary directory for file analysis
+  TEMP_DIR=$(mktemp -d)
+  if [ ! -d "$TEMP_DIR" ]; then
+    echo "❌ Error: Failed to create temporary directory"
+    exit 1
+  fi
+  echo "📝 Creating analysis files in: $TEMP_DIR"
+
+  # Functions for modular structure
+  process_text_files() {
+    echo "🔍 Finding text files..."
+    TEXT_FILES=$(find "$TARGET_PATH" -type f -not -path "*/\.*" \
+      \( -name "*.txt" -o -name "*.md" \))
+
+    # Process text files
+    local file_count=0
+    TOTAL_FILES=$(echo "$TEXT_FILES" | wc -l)
+    for file in $TEXT_FILES; do
+      file_count=$((file_count + 1))
+      FILENAME=$(basename "$file")
+      ANALYSIS_FILE="$TEMP_DIR/${FILENAME}.analysis"
+
+      echo "📄 Processing file $file_count of $TOTAL_FILES: $FILENAME"
+
+      # Create analysis file with metadata and content
+      {
+        echo "FILE: $file"
+        echo "SIZE: $(stat -f%z "$file") bytes"
+        echo "TYPE: $(file "$file" | cut -d: -f2-)"
+        echo "===== CONTENT SAMPLE ====="
+        head -n 30 "$file"
+        echo "===== END CONTENT SAMPLE ====="
+      } > "$ANALYSIS_FILE"
+    done
+
+    # Set global variable
+    TEXT_COUNT=$file_count
+  }
+
+  process_pdf_files() {
+    # Check for pdftotext
+    if ! command -v pdftotext &> /dev/null; then
+      echo "⚠️ pdftotext not found - PDF files will be skipped"
+      echo "   Install with: brew install poppler"
+      PDF_COUNT=0
+      return
+    fi
+
+    echo "✅ pdftotext found - PDF processing enabled"
+    echo "🔍 Finding PDF files..."
+    PDF_FILES=$(find "$TARGET_PATH" -type f -name "*.pdf")
+
+    # Process PDF files
+    local pdf_count=0
+    TOTAL_PDFS=$(echo "$PDF_FILES" | wc -l)
+    for file in $PDF_FILES; do
+      pdf_count=$((pdf_count + 1))
+      FILENAME=$(basename "$file")
+      ANALYSIS_FILE="$TEMP_DIR/${FILENAME}.analysis"
+
+      echo "📄 Processing PDF $pdf_count of $TOTAL_PDFS: $FILENAME"
+
+      # Create analysis file with metadata and content
+      {
+        echo "FILE: $file"
+        echo "SIZE: $(stat -f%z "$file") bytes"
+        echo "TYPE: PDF Document"
+        echo "===== CONTENT SAMPLE ====="
+        pdftotext "$file" - | head -n 30
+        echo "===== END CONTENT SAMPLE ====="
+      } > "$ANALYSIS_FILE"
+    done
+
+    # Set global variable
+    PDF_COUNT=$pdf_count
+  }
+
+  generate_ai_prompt() {
+    echo ""
+    echo "📋 Found $1 files to process"
+    echo ""
+    echo "🤖 INSTRUCTIONS FOR WARP AI:"
+    echo "============================="
+    echo ""
+    echo "1. Open a NEW TAB in Warp Terminal"
+    echo "2. Copy and paste this ENTIRE prompt:"
+    echo ""
+    echo "--------------------------- CUT HERE ---------------------------"
+
+    # Instead of using heredoc, we'll build the prompt and echo it
+    echo "I need to analyse and rename multiple text files based on their content."
+    echo ""
+    echo "I have a directory of analysis files at: ${TEMP_DIR}"
+    echo ""
+    echo "For each analysis file:"
+    echo "1. Read the file metadata and content"
+    echo "2. Generate a descriptive filename that captures the main subject/topic"
+    echo "3. Format the filename using ${CASE_STYLE} with maximum ${MAX_CHARS} characters"
+    echo "4. The filename should be in ${LANGUAGE} and contain no special characters"
+    echo "5. Output should follow this EXACT format for each file:"
+    echo ""
+    echo "RENAME: [full path to original file] -> [new filename without extension]"
+    echo ""
+    echo "Example output format:"
+    echo "RENAME: /Users/name/documents/old-file.txt -> descriptive-name"
+    echo "RENAME: /Users/name/documents/another-file.md -> better-name"
+    echo ""
+    echo "Please provide ONLY the RENAME commands, one per line, without explanation."
+
+    echo "--------------------------- CUT HERE ---------------------------"
+    echo ""
+    echo "3. Paste this text into the NEW TAB to activate Agent Mode"
+    echo "4. Wait for the AI to generate rename suggestions"
+    echo "5. Copy ALL the output with the RENAME commands"
+    echo "6. Return to THIS TAB and paste it below when prompted"
+    echo ""
+    echo "Press Enter when ready to continue, or Ctrl+C to cancel"
+    read
+  }
+
+  process_rename_commands() {
+    echo ""
+    echo "Paste the Agent Mode output below and press Enter twice when finished:"
+    RENAME_COMMANDS=""
+    while IFS= read -r line; do
+      [[ -z "$line" ]] && break
+      RENAME_COMMANDS+="$line"$'\n'
+    done
+
+    # Process rename commands
+    echo ""
+    echo "⚙️ Processing rename commands..."
+    local success_count=0
+
+    # Create backup directory if not in dry run mode
+    if [ "$DRY_RUN" = false ]; then
+      BACKUP_DIR="/tmp/ai-renamer-backup-$(date +%Y%m%d-%H%M%S)"
+      mkdir -p "$BACKUP_DIR"
+      echo "📦 Creating backups in: $BACKUP_DIR"
+    fi
+
+    echo "$RENAME_COMMANDS" | grep -E "^RENAME:" | while read -r cmd; do
+      # More robust parsing of rename commands
+      if [[ "$cmd" =~ ^RENAME:[[:space:]]+(.+)[[:space:]]+\-\>[[:space:]]+(.+)$ ]]; then
+        SRC="${BASH_REMATCH[1]}"
+        NEW_NAME="${BASH_REMATCH[2]}"
+      else
+        # Fallback to previous method if regex fails
+        SRC=$(echo "$cmd" | sed -E 's/RENAME: (.*) -> .*/\1/')
+        NEW_NAME=$(echo "$cmd" | sed -E 's/RENAME: .* -> (.*)/\1/')
+      fi
+
+      # Skip if we couldn't parse properly
+      if [[ -z "$SRC" || -z "$NEW_NAME" ]]; then
+        echo "⚠️ Could not parse command: $cmd"
+        continue
+      fi
+
+      # Skip if source file doesn't exist
+      if [[ ! -f "$SRC" ]]; then
+        echo "⚠️ Source file not found: $SRC"
+        continue
+      fi
+
+      # Extract extension and directory
+      EXT=$(echo "$SRC" | grep -o '\.[^.]*$')
+      TARGET_DIR=$(dirname "$SRC")
+      NEW_PATH="$TARGET_DIR/$NEW_NAME$EXT"
+
+      # Check if target already exists
+      if [[ -f "$NEW_PATH" && "$SRC" != "$NEW_PATH" ]]; then
+        echo "⚠️ Target file already exists: $NEW_PATH"
+        continue
+      fi
+
+      if [ "$DRY_RUN" = true ]; then
+        # Just display what would happen
+        echo "🔍 Would rename: $(basename "$SRC") → $NEW_NAME$EXT"
+        success_count=$((success_count + 1))
+      else
+        # Backup file before renaming
+        cp "$SRC" "$BACKUP_DIR/"
+
+        # Perform rename
+        echo "✅ Renaming: $(basename "$SRC") → $NEW_NAME$EXT"
+        mv "$SRC" "$NEW_PATH"
+        success_count=$((success_count + 1))
+      fi
+    done
+
+    # Set global variable
+    SUCCESS_COUNT=$success_count
+  }
+
+  # Main execution flow
+  TEXT_COUNT=0
+  process_text_files
+
+  PDF_COUNT=0
+  process_pdf_files
+
+  TOTAL_COUNT=$((TEXT_COUNT + PDF_COUNT))
+
+  # Check if we found any files
+  if [ $TOTAL_COUNT -eq 0 ]; then
+    echo "❌ No files found in $TARGET_PATH"
+    rm -rf "$TEMP_DIR"
+    exit 1
+  fi
+
+  generate_ai_prompt $TOTAL_COUNT
+
+  SUCCESS_COUNT=0
+  process_rename_commands
+
+  # Clean up
+  rm -rf "$TEMP_DIR"
+  echo ""
+  echo "🎉 Rename operations complete! $SUCCESS_COUNT files processed successfully."
+arguments:
+  - name: path
+    description: Directory containing files to rename
+    default_value: "$(pwd)"
+  - name: case
+    description: Naming convention to use (kebab-case, camel-case, etc.)
+    default_value: "kebab-case"
+  - name: chars
+    description: Maximum characters in filename
+    default_value: "20"
+  - name: language
+    description: Output language
+    default_value: "English"
+  - name: dry-run
+    description: Preview changes without executing them
+    default_value: "false"
+description: Use Warp AI to analyse and rename multiple files based on their content

@@ -1,0 +1,82 @@
+---
+# Warp Workflow Example
+# AGENT-GUIDANCE: Study warp-workflow-quick-reference.md for guidance
+# AGENT-GUIDANCE: Use appropriate argument types and verification
+# AGENT-GUIDANCE: Check using yamllint once complete
+# AGENT-GUIDANCE: Follow the correct field order:
+#  name
+#  description
+#  tags
+#  command
+#  arguments
+#  other optional fields
+
+# The name of the workflow using [Action]_[Object]_[Context] format
+name: "Find_Files_BySize"
+
+# Required description of what the workflow does (for human readability)
+description: >-
+  "Locates the largest files in a directory. Useful for disk cleanup and
+  storage optimisation."
+
+# Optional Tags that categorise the workflow
+tags:
+  - "filesystem"
+  - "disk-usage"
+  - "complexity:basic"
+
+# Required command to execute with structured comments at the top
+command: |
+  # PURPOSE: Find largest files in specified directory
+  # CONTEXT: Use when cleaning up disk space or analysing usage
+  # VERIFICATION: Checks directory existence and find command
+
+  # Verify dependencies
+  if ! command -v find &> /dev/null || ! command -v sort &> /dev/null; then
+    echo "Error: Required tools (find, sort) not available"
+    exit 1
+  fi
+
+  # Verify directory exists
+  if [ ! -d "{{target_directory}}" ]; then
+    echo "Error: Directory '{{target_directory}}' not found or not accessible"
+    exit 1
+  fi
+
+  # Provide user feedback
+  echo "Finding {{file_count}} largest files in {{target_directory}}..."
+  echo "Minimum size filter: {{min_size}}"
+
+  # Main command logic
+  find "{{target_directory}}" -type f -size +{{min_size}} -print0 | \
+    xargs -0 du -h | sort -rh | head -n {{file_count}} | \
+    awk '{printf "%-10s %s\n", $1, $2}'
+
+# Arguments used in the command (anything inside {{}} brackets)
+arguments:
+  # Dynamic enum for directory selection
+  - name: target_directory
+    description: "Directory to search"
+    default_value: "."
+    enum_command: >-
+      find "$PWD" -type d -maxdepth 2 -not -path '*/\.*' | sort
+
+  # Enum for file count with fixed common options
+  - name: file_count
+    description: "Number of files to display"
+    default_value: "10"
+    enum_variants:
+      - "5"
+      - "10"
+      - "20"
+      - "50"
+
+  # Enum for size with predefined common values
+  - name: min_size
+    description: "Minimum file size to include"
+    default_value: "10M"
+    enum_variants:
+      - "1M"
+      - "10M"
+      - "100M"
+      - "1G"

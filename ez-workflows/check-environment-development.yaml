@@ -1,0 +1,74 @@
+---
+name: Check_Environment_Development
+description: "Displays comprehensive information about installed development environments including Python, Node.js, and Conda. Shows version numbers, installation paths, and package lists to help verify your development setup."
+command: |
+  # PURPOSE: Displays information about installed development environments (Python, Node.js, Conda)
+  # CONTEXT: Use when verifying system setup or debugging environment issues
+  # VERIFICATION: No specific requirements, works on most systems
+
+  echo "===== CHECKING PYTHON ENVIRONMENT ====="
+  if command -v python3 &> /dev/null; then
+    echo "Python 3 is installed:"
+    python3 --version
+    echo "Python Path: $(which python3)"
+    echo "Pip Path: $(which pip3 2>/dev/null || echo 'pip3 not found')"
+    if command -v pip3 &> /dev/null; then
+      echo -e "\nPython Packages:"
+      pip3 list | head -10
+      echo "[...truncated, use 'pip3 list' for full output]"
+    else
+      echo "pip3 is not installed"
+    fi
+  else
+    echo "Python 3 is not installed"
+  fi
+
+  echo -e "\n===== CHECKING NODE.JS ENVIRONMENT ====="
+  if command -v node &> /dev/null; then
+    echo "Node.js is installed:"
+    node --version
+    echo "Node Path: $(which node)"
+    echo "NPM Path: $(which npm 2>/dev/null || echo 'npm not found')"
+    if command -v npm &> /dev/null; then
+      echo -e "\nGlobal Node Packages:"
+      npm list -g --depth=0 2>/dev/null | head -10
+      echo "[...truncated, use 'npm list -g' for full output]"
+    else
+      echo "npm is not installed"
+    fi
+  else
+    echo "Node.js is not installed"
+  fi
+
+  echo -e "\n===== CHECKING CONDA ENVIRONMENT ====="
+  if command -v conda &> /dev/null; then
+    echo "Conda is installed:"
+    conda --version
+    echo "Conda Path: $(which conda)"
+    echo -e "\nConda Environments:"
+    conda env list
+  else
+    echo "Conda is not installed"
+  fi
+
+tags:
+  - development
+  - python
+  - nodejs
+  - conda
+  - environment
+  - system
+
+arguments:
+  - name: include_paths
+    description: "Include system paths in the output"
+    default_value: "true"
+    type: static_enum
+    enum_options:
+      - "true"
+      - "false"
+
+source_url: "https://github.com/warpdotdev/workflows"
+shell: "bash"
+author: "Warp Team"
+

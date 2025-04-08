@@ -1,0 +1,26 @@
+---
+name: List files & directories in structured format
+command: "echo \"=== Home Directory ===\" && \nls -la {{home_dir}} && \necho \"=== Documents ===\" && \nls -la {{documents_dir}} && \necho \"=== Library/CloudStorage ===\" && \nls -la {{cloud_storage_dir}} && \necho \"=== Volumes ===\" && \nls -la {{volumes_dir}}"
+description: "This command displays header sections and lists files in the home directory, documents directory, library cloud storage, and volumes."
+arguments:
+  - name: home_dir
+    arg_type: Text
+    description: /Users/ez
+    default_value: /Users/ez
+  - name: documents_dir
+    arg_type: Text
+    description: /Users/ez/Documents
+    default_value: /Users/ez/Documents
+  - name: cloud_storage_dir
+    arg_type: Text
+    description: /Users/ez/Library/CloudStorage
+    default_value: /Users/ez/Library/CloudStorage
+  - name: volumes_dir
+    arg_type: Text
+    description: /Volumes
+    default_value: /Volumes
+tags: []
+source_url: ~
+author: ~
+author_url: ~
+shells: []

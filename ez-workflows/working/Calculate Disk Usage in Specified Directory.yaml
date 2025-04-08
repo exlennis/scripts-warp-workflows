@@ -1,0 +1,24 @@
+---
+name: Calculate Disk Usage in Specified Directory
+command: "du -h -d {{depth}} {{directory}} {{hidden_files}} | sort -hr"
+description: "\n- `du -h -d 1 ~` → Shows the size of each folder in ~ (human-readable format).\n- `|` (Pipe): Sends the output of the first command to the next command\n- `sort -hr` → Sorts results by size (largest first). \n"
+arguments:
+  - name: depth
+    arg_type: Text
+    description: depth of the directory to display
+    default_value: "1"
+  - name: directory
+    arg_type: Enum
+    enum_name: directory
+    enum_command: "find \"$PWD\" -type d -maxdepth 2 -not -path '*/\\.*'"
+    description: e.g. for (~) for home directory
+    default_value: ~
+  - name: hidden_files
+    arg_type: Text
+    description: include hidden files (~/.*) or without (~/*)
+    default_value: ~/.*
+tags: []
+source_url: ~
+author: ~
+author_url: ~
+shells: []

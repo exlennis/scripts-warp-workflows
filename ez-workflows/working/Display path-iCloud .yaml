@@ -1,0 +1,22 @@
+---
+name: Display iCloud Related Paths
+command: "echo \"=== iCloud Related Paths ===\" &&\necho \"CloudStorage: {{cloudStorage_base_directory}}\" &&\necho \"iCloud Drive (CloudDocs): {{icloud_drive_path}}\" &&\nls -la {{icloud_drive_parent}} | grep \"CloudDocs\""
+description: "This command outputs paths related to iCloud including the current working directory and the path to iCloud Drive, and lists the contents of the parent directory of CloudDocs.\n\necho \"=== iCloud Related Paths ===\" &&\necho \"CloudStorage: $PWD\" &&\necho \"iCloud Drive (CloudDocs): $(ls -d ~/Library/Mobile\\ Documents/com~apple~CloudDocs)\" &&\nls -la ~/Library/Mobile\\ Documents/com~apple~CloudDocs/.. | grep \"CloudDocs\""
+arguments:
+  - name: cloudStorage_base_directory
+    arg_type: Text
+    description: path to cloudStorage base directory
+    default_value: /Users/ez/Library/CloudStorage
+  - name: icloud_drive_path
+    arg_type: Text
+    description: path to iCloud Drive (CloudDocs)
+    default_value: "$(ls -d ~/Library/Mobile\\ Documents/com~apple~CloudDocs)"
+  - name: icloud_drive_parent
+    arg_type: Text
+    description: parent directory of iCloud Drive (CloudDocs)
+    default_value: ~
+tags: []
+source_url: ~
+author: ~
+author_url: ~
+shells: []

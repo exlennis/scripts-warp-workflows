@@ -1,0 +1,40 @@
+echo "Font Directory Report for toSort_fonts_p2" && \
+echo "=====================================\n" && \
+echo "1. FONT FILE COUNTS BY TYPE:" && \
+echo "-------------------------" && \
+find /Users/ez/Local/-PROJECTS-Dev/archive_fonts/toSort_fonts_p2 -type f \( -name "*.otf" -o -name "*.ttf" -o -name "*.woff" -o -name "*.woff2" \) | grep -v "\.DS_Store" | sed 's/.*\.//' | sort | uniq -c && \
+echo "\n2. DIRECTORY STRUCTURE:" && \
+echo "--------------------" && \
+find /Users/ez/Local/-PROJECTS-Dev/archive_fonts/toSort_fonts_p2 -type d -not -path "*/\.*" | sed 's|[^/]*/|  |g' && \
+echo "\n3. STANDALONE FONT FILES:" && \
+echo "-----------------------" && \
+find /Users/ez/Local/-PROJECTS-Dev/archive_fonts/toSort_fonts_p2 -maxdepth 1 -type f \( -name "*.otf" -o -name "*.ttf" \) | sed 's|.*/||'
+
+
+
+create a comprehensive report of the fonts in the directory. I'll use the `find` command combined with some formatting to generate a structured report that shows:
+1. Total number of files by font type
+2. Directory structure with font counts
+3. List of standalone font files
+
+
+
+
+
+echo "COMPREHENSIVE FONT DIRECTORY REPORT" && \
+echo "================================\n" && \
+echo "Base Directory:" && \
+echo "/Users/ez/Local/-PROJECTS-Dev/archive_fonts/toSort_fonts_p2\n" && \
+echo "ALL FILE EXTENSIONS PRESENT:" && \
+echo "-------------------------" && \
+find /Users/ez/Local/-PROJECTS-Dev/archive_fonts/toSort_fonts_p2 -type f -name "*.*" | grep -v "\.DS_Store" | sed 's/.*\.//' | sort -u && \
+echo "\nFONT FILE COUNTS BY TYPE:" && \
+echo "----------------------" && \
+echo "Modern Formats:" && \
+find /Users/ez/Local/-PROJECTS-Dev/archive_fonts/toSort_fonts_p2 -type f \( -name "*.otf" -o -name "*.ttf" -o -name "*.woff" -o -name "*.woff2" \) | grep -v "\.DS_Store" | sed 's/.*\.//' | sort | uniq -c && \
+echo "\nPostScript Type1 Related Formats (if any):" && \
+find /Users/ez/Local/-PROJECTS-Dev/archive_fonts/toSort_fonts_p2 -type f \( -name "*.pfb" -o -name "*.pfa" -o -name "*.pfm" -o -name "*.afm" -o -name "*.ps" -o -name "*.t1" -o -name "*.lwfn" \) | grep -v "\.DS_Store" | sed 's/.*\.//' | sort | uniq -c
+
+
+
+find "/Users/ez/Local/-PROJECTS-Dev/archive_fonts/toSort_Fonts_Projects" -type f -name "*.*" | awk -F. '{print tolower($NF)}' | sort -u | grep -v '^$'

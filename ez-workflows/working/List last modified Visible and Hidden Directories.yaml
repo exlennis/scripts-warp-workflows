@@ -1,0 +1,10 @@
+---
+name: List last modified Visible and Hidden Directories
+command: "find ~ -maxdepth 1 -type d -exec stat -f \"%Sm %N\" {} \\; | sort -r\nfind ~/.* -maxdepth 0 -type d -exec stat -f \"%Sm %N\" {} \\; | sort -r"
+description: "list and sort directories based on their last modification times. The first command focuses on hidden directories (those starting with a dot) within the user's home directory, while the second command targets all top-level directories. Both commands utilize the stat utility to retrieve the modification timestamp and directory name, sorting the output in reverse order to display the most recently modified directories first."
+arguments: []
+tags: []
+source_url: ~
+author: ~
+author_url: ~
+shells: []

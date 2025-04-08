@@ -1,0 +1,44 @@
+---
+name: Run_DirectoryChecker_Script
+description: |
+  PURPOSE: Executes a Python script that checks and analyses directory structures.
+  
+  CONTEXT: This workflow navigates to the specified directory and runs the directory
+  checker Python script, which performs various checks and analyses on directory
+  structures. The script helps with identifying file organisation patterns and
+  potential issues within a directory hierarchy.
+  
+  COMPLEXITY: Beginner - Simple script execution with minimal parameters.
+tags:
+  - python
+  - directory
+  - analysis
+  - script
+  - filesystem
+commands:
+  - name: Verify script exists and execute
+    command: |
+      # Navigate to the script directory
+      if [ -d {{script_directory}} ]; then
+        cd {{script_directory}}
+        
+        # Check if script exists
+        if [ -f "{{script_name}}" ]; then
+          echo "Running directory checker script..."
+          python {{script_name}}
+        else
+          echo "Error: Script '{{script_name}}' not found in {{script_directory}}"
+          exit 1
+        fi
+      else
+        echo "Error: Directory '{{script_directory}}' does not exist"
+        exit 1
+      fi
+arguments:
+  - name: script_directory
+    description: The directory containing the directory checker script
+    default_value: "/Users/ez/Local/-PROJECTS-Dev/25_Warp_Nexus/warp-drive-audit/Directory_Path"
+  - name: script_name
+    description: The name of the directory checker Python script to run
+    default_value: "directory_checker.py"
+

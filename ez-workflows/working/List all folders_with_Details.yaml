@@ -1,0 +1,13 @@
+---
+name: "List all folders (not files) in your home directory (~), display both rwx format and numeric permissions, and sort by numeric permissions"
+command: "find ~ -maxdepth 1 -type d -exec stat -f \"%A %N\" {} \\; | sort -n | while IFS= read -r line; do\n    perm=$(echo \"$line\" | awk '{print $1}')\n    folder=$(echo \"$line\" | cut -d ' ' -f2-)\n    printf \"%s \" \"$perm\"\n    ls -ld \"$folder\"\ndone"
+description:
+ List all folders_with_Details (not files) in your home directory (~), display both rwx format and numeric permissions, and sort by numeric permissions
+ 
+"1.\tfind ~ -maxdepth 1 -type d -exec stat -f \"%A %N\" {} \\;\n•\tLists all folders (-type d) in your home directory (~).\n•\tDisplays numeric permissions (%A) and folder name (%N).\n\n2.\tsort -n\n•\tSorts results numerically (more restrictive permissions first, like 700 before 755). Sorted by numeric permissions while showing both formats:\n•\tdrwx------ (700) → Owner-only access (Most restrictive).\n•\tdrwxr-xr-x (755) → Owner can edit, others can read/execute.\n•\tdrwxrwxr-x (775) → Owner + Group can edit, others can read/execute.\n\n\n3.\twhile read perm folder; do ls -ld \"$folder\"; done\n•\tConverts the numeric permissions into human-readable rwx format."
+arguments: []
+tags: []
+source_url: ~
+author: ~
+author_url: ~
+shells: []

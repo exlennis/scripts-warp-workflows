@@ -1,0 +1,96 @@
+---
+# Warp Workflow Example
+# AGENT-GUIDANCE: Study warp-workflow-quick-reference.md for guidance
+# AGENT-GUIDANCE: Use appropriate argument types and verification
+# AGENT-GUIDANCE: Check using yamllint once complete
+# AGENT-GUIDANCE: Follow the correct field order:
+#  name
+#  description
+#  tags
+#  command
+#  arguments
+#  other optional fields
+
+# The name of the workflow using [Action]_[Object]_[Context] format
+name: "Generate_Tree_Directory"
+
+# Required description of what the workflow does (for human readability)
+description: >-
+  "Generates a markdown document with a directory tree visualisation.
+  Includes depth control and file inclusion options for project documentation."
+
+# Optional Tags that categorise the workflow
+tags:
+  - "filesystem"
+  - "documentation"
+  - "complexity:basic"
+
+# Required command to execute with structured comments at the top
+command: |
+  # PURPOSE: Create visual directory structure with custom depth
+  # CONTEXT: When documenting project structure or analysing folder
+  # organisation
+  # VERIFICATION: Confirms directory exists and tree command is available
+
+  # Verify tree command exists
+  if ! command -v tree &> /dev/null; then
+    echo "Error: 'tree' command not found. Please install it first."
+    exit 1
+  fi
+
+  # Verify directory exists
+  if [ ! -d "{{directory}}" ]; then
+    echo "Error: Directory '{{directory}}' not found or not accessible"
+    exit 1
+  fi
+
+  {
+    echo "# Directory Structure: {{directory}}"  # Markdown Header
+    echo '```bash'
+    tree -C -L {{level}} {{include_files}} --dirsfirst --noreport \
+      "{{directory}}" 2>/dev/null
+    echo '```'
+    echo -e "\n## Summary"
+    echo '```bash'
+    tree -C "{{directory}}" {{include_files}} --noreport | tail -n 1
+    echo '```'
+  } > "{{output_file}}.md" && cat "{{output_file}}.md"
+
+# Arguments used in the command (anything inside {{}} brackets)
+arguments:
+  # directory: Target folder to visualise in the markdown document
+  # Uses dynamic enum to provide an interactive list of available directories
+  # Default "." refers to the current working directory
+  - name: directory
+    description: >-
+      Directory to generate tree structure for (e.g., ~/Documents, ./src)
+    default_value: "."
+    enum_command: >-
+      find "$PWD" -type d -maxdepth 2 -not -path '*/\.*' | sort
+
+  # level: Controls visualisation depth - how many nested levels to show
+  # Default "2" provides a good balance between detail and readability
+  # Use "1" for just top-level items or higher numbers for deep inspection
+  - name: level
+    description: >-
+      Directory depth to display (1-5 recommended for reasonable output size)
+    default_value: "2"
+
+  # include_files: Controls visibility of files in the tree structure
+  # Empty default shows only directories for cleaner, more compact output
+  # "-a" option includes all files, which is useful for complete inventory
+  - name: include_files
+    description: >-
+      Show files in tree output (empty = dirs only, -a = show all files)
+    default_value: ""
+    enum_variants:
+      - ""
+      - "-a"
+
+  # output_file: Filename for the generated markdown document
+  # The ".md" extension is automatically added by the workflow
+  # Choose descriptive names relevant to the directory being documented
+  - name: output_file
+    description: >-
+      Output filename without extension (creates output_file.md in current dir)
+    default_value: "directory_tree"

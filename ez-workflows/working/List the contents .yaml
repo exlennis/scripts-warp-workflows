@@ -1,0 +1,10 @@
+---
+name: "List the contents of "
+command: "ls -la ~/Library/Application\\ Support/ | grep CloudDocs\n[3] 8733 8734\n [|]  [3]  + done       ls -la ~/Library/Application\\ Support/ | \n       exit 1     grep CloudDocs"
+description: ~
+arguments: []
+tags: []
+source_url: ~
+author: ~
+author_url: ~
+shells: []

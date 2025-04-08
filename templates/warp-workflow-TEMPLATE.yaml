@@ -1,0 +1,80 @@
+---
+# Warp Workflow Template
+# AGENT-GUIDANCE: Study warp-workflow-quick-reference.md for guidance
+# AGENT-GUIDANCE: Use appropriate argument types and verification
+# AGENT-GUIDANCE: Check using yamllint once complete
+# AGENT-GUIDANCE: Follow the correct field order:
+#  name
+#  description
+#  tags
+#  command
+#  arguments
+#  other optional fields
+
+# Required name of the workflow (following standardised format)
+name: "[Action]_[Object]_[Context]"
+
+# Required description of what the workflow does (for human readability)
+description: "Explanation of what this workflow does and when it's useful."
+
+# Optional Tags that categorise the workflow
+tags:
+  - "category"       # Main category (filesystem, development. etc)
+  - "subcategory"    # More specific grouping (navigation, setup, etc)
+  - "complexity:basic"  # Basic/Intermediate/Advanced
+
+# Requied command to execute with structured comments at the top
+command: |
+  # PURPOSE: [max 50 chars] What this command does
+  # CONTEXT: [max 50 chars] When to use this command
+  # VERIFICATION: Checks before execution (dependencies, paths)
+
+  # Example tools verification (uncomment and modify as needed)
+  # if ! command -v required_tool &> /dev/null; then
+  #   echo "Error: Tool not found. Please install it first."
+  #   exit 1
+  # fi
+
+  # Example paths verification (uncomment and modify as needed)
+  # if [ ! -d "{{directory_arg}}" ]; then
+  #   echo "Error: Directory not found or not accessible"
+  #   exit 1
+  # fi
+
+  # Example command with arguments
+  echo "This is a command with {{argument_name}}"
+
+# Arguments used in the command (anything inside {{}} brackets)
+# AGENT-GUIDANCE: Use the appropriate type based on the decision tree
+arguments:
+  # Example text argument (for free-form input, least preferred)
+  - name: argument_name
+    description: "Description of what this argument does"
+    default_value: "default-value"
+
+  # Example static enum (for selection from fixed options)
+  # - name: static_argument
+  #   description: "Select from predefined options"
+  #   default_value: "option1"
+  #   enum_variants:
+  #     - "option1"
+  #     - "option2"
+  #     - "option3"
+
+  # Example dynamic enum (for filesystem selection)
+  # - name: dynamic_argument
+  #   description: "Select from available directories"
+  #   default_value: "."
+  #   enum_command: >-
+  #     find "$PWD" -type d -maxdepth 2 -not -path '*/\.*' | sort
+
+# Optional attribution information (uncomment to specify)
+# author: "ez"
+# author_url: "https://github/exlennis"
+# author_url: "https://github/exlennis"
+
+# Optional compatibility (uncomment to specify)
+# shells:
+#   - zsh
+#   - bash
+#   - fish

@@ -1,0 +1,14 @@
+---
+name: Format_Markdown_Prettier
+command: "prettier --config=\"/Users/ez/Local/configs/prettier/.prettierrc\" --write \"{{file_path}}\"\n"
+description: Format a markdown file using the stored Prettier configuration
+arguments:
+  - name: file_path
+    arg_type: Text
+    description: markdown file path to format
+    default_value: ~
+tags: []
+source_url: ~
+author: ~
+author_url: ~
+shells: []

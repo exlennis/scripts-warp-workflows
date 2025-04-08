@@ -1,0 +1,91 @@
+---
+# Warp Workflow for Directory Examination and Structure Analysis
+
+name: 'Examine_Directory_Structure'
+
+description: |
+  Systematically analyse directory contents to understand file organisation. Commands reveal directory hierarchy, file types, and space utilisation. This helps you make informed decisions about file management and structural organisation.
+
+tags:
+  - 'filesystem' # Main category
+  - 'organisation' # More specific grouping
+  - 'analysis' # Type of operation
+  - 'complexity:intermediate' # Complexity level
+
+command: |
+  # PURPOSE: Provides detailed analysis of directory structure
+  # CONTEXT: When reorganising files or exploring project layout
+  # VERIFICATION: Checks for required tools and valid directory path
+
+  # Check if directory exists
+  if [ ! -d "{{directory_path}}" ]; then
+    echo "Error: Directory '{{directory_path}}' not found or not accessible"
+    exit 1
+  fi
+
+  # Check if tree command is available
+  HAS_TREE=true
+  if ! command -v tree &> /dev/null; then
+    HAS_TREE=false
+    echo "Note: 'tree' command not found. Using alternative method for directory structure."
+  fi
+
+  cd "{{directory_path}}"
+
+  # Step 1: List directory contents with details
+  echo -e "\n\033[1;36m===== DETAILED DIRECTORY LISTING =====\033[0m"
+  ls -lah
+
+  # Step 2: Show directory structure
+  echo -e "\n\033[1;36m===== DIRECTORY STRUCTURE ({{depth_level}} levels deep) =====\033[0m"
+  if [ "$HAS_TREE" = true ]; then
+    tree -L {{depth_level}} {{tree_options}}
+  else
+    find . -maxdepth {{depth_level}} -type d -print | sed -e 's;[^/]*/;|____;g;s;____|; |;g'
+  fi
+
+  # Step 3: Display disk usage by subdirectory
+  echo -e "\n\033[1;36m===== DISK USAGE BY SUBDIRECTORY =====\033[0m"
+  du -hd 1 | sort -hr
+
+  # Step 4: Show file type distribution
+  echo -e "\n\033[1;36m===== FILE TYPE DISTRIBUTION =====\033[0m"
+  find . -type f | sed 's/.*\.//' | sort | uniq -c | sort -nr
+
+  # Optional: Search for specific file types if provided
+  if [ -n "{{file_extension}}" ]; then
+    echo -e "\n\033[1;36m===== FILES WITH .{{file_extension}} EXTENSION =====\033[0m"
+    find . -type f -name "*.{{file_extension}}"
+  fi
+
+  echo -e "\n\033[1;32m===== DIRECTORY EXAMINATION COMPLETE =====\033[0m"
+  echo "These insights can help with directory restructuring, file grouping strategies,"
+  echo "naming conventions, space optimisation, and access permissions."
+
+arguments:
+  - name: directory_path
+    description: 'The directory path to examine (absolute or relative)'
+    default_value: '.'
+
+  - name: depth_level
+    description: 'How many directory levels deep to explore'
+    default_value: '2'
+
+  - name: tree_options
+    description: 'Options for the tree command'
+    default_value: ''
+    enum_variants:
+      - ''
+      - '-h'
+      - '-d'
+      - '-a'
+      - '-ha'
+
+  - name: file_extension_options
+    description: 'Options to search specific file extension (without dot)'
+    default_value: ''
+
+author: 'warp-workflows'
+shells:
+  - zsh
+  - bash

@@ -1,0 +1,86 @@
+---
+name: Display_Paths_iCloud
+description: Displays common iCloud and iCloud Drive paths on macOS for troubleshooting and investigation
+tags:
+  - macos
+  - icloud
+  - filesystem
+  - storage
+  - paths
+command: |
+  # PURPOSE: Display paths for iCloud and iCloud Drive on macOS
+  # CONTEXT: Use when troubleshooting iCloud storage or investigating paths
+  # VERIFICATION: Runs on macOS only, checks for existence of common paths
+
+  # Process arguments
+  SHOW_HIDDEN="${show_hidden}"
+  MAX_ITEMS="${max_items}"
+  
+  # Set ls options based on show_hidden argument
+  LS_OPTS="-la"
+  if [[ "$SHOW_HIDDEN" != "true" ]]; then
+    LS_OPTS="-la"
+  fi
+
+  # Verify this is macOS
+  if [[ "$(uname)" != "Darwin" ]]; then
+    echo "Error: This workflow is for macOS only."
+    exit 1
+  fi
+
+  echo "iCloud and iCloud Drive Paths on macOS:"
+  echo "----------------------------------------"
+  
+  # User's iCloud Drive folder
+  ICLOUD_DRIVE="$HOME/Library/Mobile Documents/com~apple~CloudDocs"
+  echo "iCloud Drive main folder:"
+  if [[ -d "$ICLOUD_DRIVE" ]]; then
+    echo "  $ICLOUD_DRIVE"
+  else
+    echo "  $ICLOUD_DRIVE (not found)"
+  fi
+  
+  # iCloud settings and data locations
+  echo -e "\niCloud Settings and Data:"
+  
+  ICLOUD_PATHS=(
+    "$HOME/Library/Application Support/iCloud"
+    "$HOME/Library/Application Support/CloudDocs"
+    "$HOME/Library/Caches/com.apple.cloudd"
+    "$HOME/Library/Logs/CloudKit"
+    "/Library/Application Support/Apple/CloudDocs"
+  )
+  
+  for path in "${ICLOUD_PATHS[@]}"; do
+    if [[ -e "$path" ]]; then
+      echo "  $path"
+    else
+      echo "  $path (not found)"
+    fi
+  done
+  
+  # Show Mobile Documents folder content summary
+  echo -e "\nMobile Documents folder content:"
+  if [[ -d "$HOME/Library/Mobile Documents" ]]; then
+    echo "  $HOME/Library/Mobile Documents exists with the following items:"
+    ls $LS_OPTS "$HOME/Library/Mobile Documents" | tail -n +4 | head -n $MAX_ITEMS
+    TOTAL_ITEMS=$(ls $LS_OPTS "$HOME/Library/Mobile Documents" | wc -l)
+    DISPLAYED_ITEMS=$MAX_ITEMS
+    if [[ $(($TOTAL_ITEMS - 3)) -gt $DISPLAYED_ITEMS ]]; then
+      echo "  ... and $((($TOTAL_ITEMS - 3) - $DISPLAYED_ITEMS)) more items"
+    fi
+  else
+    echo "  $HOME/Library/Mobile Documents (not found)"
+  fi
+arguments:
+  - name: show_hidden
+    description: "Show hidden files in the listings (true/false)"
+    default_value: "false"
+  - name: max_items
+    description: "Maximum number of items to display per directory"
+    default_value: "10"
+source_url: ""
+author: ""
+author_url: ""
+shells: ["bash", "zsh"]
+

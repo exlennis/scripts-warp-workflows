@@ -1,0 +1,32 @@
+---
+name: Tree Directory Output
+command: "{\n  echo \"# Directory Structure: {{directory}}\"  # Markdown Header\n  echo '```bash'\n  tree -C -L {{level}} {{include_files}} --dirsfirst --noreport \"{{directory}}\" 2>/dev/null\n  echo '```'\n  echo -e \"\\n## Summary\"\n  echo '```bash'\n  tree -C \"{{directory}}\" {{include_files}} --noreport | tail -n 1\n  echo '```'\n} > \"{{output_file}}.md\" && cat \"{{output_file}}.md\""
+description: Generates a directory tree structure summary and save as a markdown document.
+arguments:
+  - name: directory
+    arg_type: Enum
+    enum_name: directory
+    enum_command: "find \"$PWD\" -type d -maxdepth 2 -not -path '*/\\.*'"
+    description: Auto-list directories for selection.
+    default_value: ~
+  - name: level
+    arg_type: Text
+    description: Depth level for tree output.
+    default_value: "2"
+  - name: include_files
+    arg_type: Enum
+    enum_name: include_files
+    enum_variants:
+      - "false"
+      - "true"
+    description: Toggle files in output.
+    default_value: ~
+  - name: output_file
+    arg_type: Text
+    description: Output file name (withou ..md extension)
+    default_value: directory_tree_downloads
+tags: []
+source_url: ~
+author: ~
+author_url: ~
+shells: []

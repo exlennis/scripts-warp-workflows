@@ -1,0 +1,110 @@
+---
+name: AI-File-Renamer
+command: |
+  # === AI-Powered File Renaming Workflow ===
+
+  # Configuration
+  TARGET_PATH="${1:-$PWD}"  # Changed from $(pwd) to $PWD
+  CASE_STYLE="${2:-kebab-case}"
+  MAX_CHARS="${3:-20}"
+  LANGUAGE="${4:-English}"
+
+  echo "AnalySing files in: $TARGET_PATH"
+  echo "Using settings: $CASE_STYLE format, $MAX_CHARS max chars, $LANGUAGE language"
+  echo ""
+
+  # Create temporary directory for file analysis
+  TEMP_DIR=$(mktemp -d)
+  echo "Creating analysis files in: $TEMP_DIR"
+
+  # Find relevant files and create analysis docs
+  find "$TARGET_PATH" -type f -not -path "*/\.*" -name "*.txt" -o -name "*.md" -o -name "*.pdf" | while read file; do
+    FILENAME=$(basename "$file")
+    ANALYSIS_FILE="$TEMP_DIR/${FILENAME}.analysis"
+
+    echo "Analyzing: $FILENAME"
+
+    # Create analysis file with metadata and content
+    {
+      echo "FILE: $file"
+      echo "SIZE: $(stat -f%z "$file") bytes"
+      echo "TYPE: $(file "$file" | cut -d: -f2-)"
+      echo "CONTENT_START"
+      if [[ "$file" == *.pdf ]]; then
+        pdftotext "$file" - | head -n 50
+      else
+        head -n 50 "$file"
+      fi
+      echo "CONTENT_END"
+    } > "$ANALYSIS_FILE"
+  done
+
+  echo ""
+  echo "AI Assistant Instructions:"
+  echo "----------------------------"
+  echo "1. Open a new Warp Terminal tab"
+  echo "2. Enter Agent Mode with the following prompt:"
+  echo ""
+  echo "I need to analyse and rename multiple text files based on their content."
+  echo "I have a directory of analysis files at: $TEMP_DIR"
+  echo ""
+  echo "For each analysis file:"
+  echo "1. Read the file metadata and content"
+  echo "2. Generate a descriptive filename that captures the essence of the content"
+  echo "3. Format the filename using $CASE_STYLE with maximum $MAX_CHARS characters"
+  echo "4. The filename should be in $LANGUAGE and contain no special characters"
+  echo "5. Output should be in a format I can easily parse with a script:"
+  echo ""
+  echo "RENAME: {original_path} -> {new_name}"
+  echo ""
+  echo "After inspecting the files in $TEMP_DIR, please proceed with your analysis and recommend new filenames."
+
+  echo ""
+  echo "3. Copy the output of the Agent Mode"
+  echo "4. Return to this tab and paste the output when prompted"
+  echo ""
+  echo "Press Enter when ready to continue, or Ctrl+C to cancel"
+  read
+
+  echo ""
+  echo "Paste the Agent Mode output (RENAME: commands) below and press Enter twice to finish:"
+  RENAME_COMMANDS=""
+  while IFS= read -r line; do
+    [[ -z "$line" ]] && break
+    RENAME_COMMANDS+="$line"$'\n'
+  done
+
+  # Process rename commands
+  echo ""
+  echo "Processing rename commands..."
+  echo "$RENAME_COMMANDS" | grep "^RENAME:" | while read -r cmd; do
+    SRC=$(echo "$cmd" | sed -E 's/RENAME: (.*) -> .*/\1/')
+    NEW_NAME=$(echo "$cmd" | sed -E 's/RENAME: .* -> (.*)/\1/')
+    EXT=$(echo "$SRC" | grep -o '\.[^.]*$')
+
+    # Perform the rename
+    TARGET_DIR=$(dirname "$SRC")
+    NEW_PATH="$TARGET_DIR/$NEW_NAME$EXT"
+
+    echo "Renaming: $SRC -> $NEW_PATH"
+    mv "$SRC" "$NEW_PATH"
+  done
+
+  # Clean up
+  rm -rf "$TEMP_DIR"
+  echo "Rename operations complete!"
+
+arguments:
+  - name: path
+    description: Directory containing files to rename
+    default_value: "."  # Changed from $(pwd) to "." (current directory)
+  - name: case
+    description: Naming convention to use (kebab-case, camel-case, etc.)
+    default_value: "kebab-case"
+  - name: chars
+    description: Maximum characters in filename
+    default_value: "20"
+  - name: language
+    description: Output language
+    default_value: "English"
+description: Use Warp AI to analyse and rename multiple files based on their content

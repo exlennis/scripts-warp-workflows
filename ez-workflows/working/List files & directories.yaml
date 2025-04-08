@@ -1,0 +1,14 @@
+---
+name: List files & directories
+command: "ls -la {{directory}}"
+description: "This command provides a detailed list of all files and directories within the specified directory, including hidden files."
+arguments:
+  - name: directory
+    arg_type: Text
+    description: the path of the directory to list
+    default_value: /Volumes
+tags: []
+source_url: ~
+author: ~
+author_url: ~
+shells: []

@@ -1,0 +1,24 @@
+---
+name: "Display Directory Tree Structure, Font Directory"
+command: "tree -d -L {{level}} '{{directory}}' > {{output_file}}"
+description: "This command generates a tree structure of directories up to a specified depth and saves the output to a file.\n\neg:\ntree -d -L 2 '/Users/ez/Library/CloudStorage/Dropbox-Personal/-DESIGN-/Assets/Fonts' > fonts_tree.txt\ntree -d -L 2 '/Users/ez/Library/CloudStorage/Dropbox-Personal/-DESIGN-/Assets/Fonts' > '/Users/ez/Local/appData/Warp/fonts_directory_2025-02-17.txt'"
+arguments:
+  - name: level
+    arg_type: Text
+    description: " depth of the directory structure to display"
+    default_value: "2"
+  - name: directory
+    arg_type: Enum
+    enum_name: directory
+    enum_command: "find \"$PWD\" -type d -maxdepth 2 -not -path '*/\\.*'"
+    description: directory path to analyse and display its structure
+    default_value: ~
+  - name: output_file
+    arg_type: Text
+    description: the file where the output of the tree structure will be saved
+    default_value: ~
+tags: []
+source_url: ~
+author: ~
+author_url: ~
+shells: []

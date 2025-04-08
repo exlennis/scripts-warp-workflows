@@ -1,0 +1,14 @@
+---
+name: List directories with detailed information
+command: "ls -ld {{user_path}}/*/"
+description: This command lists detailed information for all directories in the specified user path
+arguments:
+  - name: user_path
+    arg_type: Text
+    description: "the path to the user's directory"
+    default_value: /Users/ez
+tags: []
+source_url: ~
+author: ~
+author_url: ~
+shells: []
