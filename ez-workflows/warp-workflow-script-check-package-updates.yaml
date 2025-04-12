@@ -1,0 +1,210 @@
+  - name: Check for homebrew updates
+    command: |
+      TEMP_DIR=$(cat /tmp/package_update_temp_dir)
+      echo "=== Checking Homebrew packages ==="
+      if command -v brew >/dev/null 2>&1; then
+        if [[ "{{verbose}}" == "true" ]]; then
+          brew outdated --verbose | tee "$TEMP_DIR/brew_updates.txt"
+        else
+          brew outdated | tee "$TEMP_DIR/brew_updates.txt"
+        fi
+        
+        # Get count of outdated packages
+        COUNT=$(wc -l < "$TEMP_DIR/brew_updates.txt" | tr -d ' ')
+        if [[ "$COUNT" -gt 0 ]]; then
+          echo "Found $COUNT outdated Homebrew packages"
+        else
+          echo "All Homebrew packages are up to date"
+        fi
+      else
+        echo "Error: Homebrew is not installed or not found in PATH" | tee "$TEMP_DIR/brew_updates.txt"
+        echo "Consider installing Homebrew from https://brew.sh/"
+      fi
+    
+  - name: Check for Python pip updates
+    command: |
+      TEMP_DIR=$(cat /tmp/package_update_temp_dir)
+      echo "=== Checking Python pip packages ==="
+      if command -v pip >/dev/null 2>&1; then
+        if [[ "{{verbose}}" == "true" ]]; then
+          pip list --outdated --format=columns | tee "$TEMP_DIR/pip_updates.txt"
+        else
+          pip list --outdated --format=columns | tee "$TEMP_DIR/pip_updates.txt"
+        fi
+        
+        # Get count of outdated packages (exclude header lines)
+        COUNT=$(grep -v "^Package" "$TEMP_DIR/pip_updates.txt" | grep -v "^----" | wc -l | tr -d ' ')
+        if [[ "$COUNT" -gt 0 ]]; then
+          echo "Found $COUNT outdated Python packages"
+        else
+          echo "All Python packages are up to date"
+        fi
+      else
+        echo "Error: pip is not installed or not found in PATH" | tee "$TEMP_DIR/pip_updates.txt"
+        echo "Consider installing pip with 'curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && python get-pip.py'"
+      fi
+    
+  - name: Check for Ruby gem updates
+    command: |
+      TEMP_DIR=$(cat /tmp/package_update_temp_dir)
+      echo "=== Checking Ruby gems ==="
+      if command -v gem >/dev/null 2>&1; then
+        if [[ "{{verbose}}" == "true" ]]; then
+          gem outdated --verbose | tee "$TEMP_DIR/gem_updates.txt"
+        else
+          gem outdated | tee "$TEMP_DIR/gem_updates.txt"
+        fi
+        
+        # Get count of outdated gems
+        COUNT=$(wc -l < "$TEMP_DIR/gem_updates.txt" | tr -d ' ')
+        if [[ "$COUNT" -gt 0 ]]; then
+          echo "Found $COUNT outdated Ruby gems"
+        else
+          echo "All Ruby gems are up to date"
+        fi
+      else
+        echo "Error: gem is not installed or not found in PATH" | tee "$TEMP_DIR/gem_updates.txt"
+        echo "Consider installing Ruby and RubyGems from https://www.ruby-lang.org/"
+      fi
+    
+  - name: Check for npm updates
+    command: |
+      TEMP_DIR=$(cat /tmp/package_update_temp_dir)
+      echo "=== Checking npm packages ==="
+      if command -v npm >/dev/null 2>&1; then
+        if [[ "{{verbose}}" == "true" ]]; then
+          npm outdated -g --depth=0 | tee "$TEMP_DIR/npm_updates.txt"
+        else
+          npm outdated -g --depth=0 | tee "$TEMP_DIR/npm_updates.txt"
+        fi
+        
+        # Get count of outdated packages (exclude header line)
+        COUNT=$(grep -v "^Package" "$TEMP_DIR/npm_updates.txt" | wc -l | tr -d ' ')
+        if [[ "$COUNT" -gt 0 ]]; then
+          echo "Found $COUNT outdated npm packages"
+        else
+          echo "All npm packages are up to date"
+        fi
+      else
+        echo "Error: npm is not installed or not found in PATH" | tee "$TEMP_DIR/npm_updates.txt"
+        echo "Consider installing Node.js and npm from https://nodejs.org/"
+      fi
+    
+  - name: Check for yarn updates
+    command: |
+      TEMP_DIR=$(cat /tmp/package_update_temp_dir)
+      echo "=== Checking yarn packages ==="
+      if command -v yarn >/dev/null 2>&1; then
+        if [[ "{{verbose}}" == "true" ]]; then
+          yarn global outdated | tee "$TEMP_DIR/yarn_updates.txt"
+        else
+          yarn global outdated | tee "$TEMP_DIR/yarn_updates.txt"
+        fi
+        
+        # Note: Yarn doesn't provide an easy way to count without parsing
+        if [[ -s "$TEMP_DIR/yarn_updates.txt" ]]; then
+          echo "Found outdated yarn packages"
+        else
+          echo "All yarn packages are up to date"
+        fi
+      else
+        echo "Error: yarn is not installed or not found in PATH" | tee "$TEMP_DIR/yarn_updates.txt"
+        echo "Consider installing Yarn with 'npm install -g yarn'"
+      fi
+
+  - name: Generate summary report
+    command: |
+      TEMP_DIR=$(cat /tmp/package_update_temp_dir)
+      TIMESTAMP=$(date +"%Y%m%d")
+      echo "=== Package Updates Summary (${TIMESTAMP}) ==="
+      echo ""
+      
+      # Define function to show updates
+      show_updates() {
+        local file=$1
+        local manager=$2
+        
+        if [[ -f "$file" ]]; then
+          if grep -q "Error:" "$file"; then
+            echo "⚠️  $manager: Not installed or unavailable"
+          elif [[ -s "$file" && ! $(grep -q "Error:" "$file") ]]; then
+            local count=$(grep -v "^Package" "$file" | grep -v "^----" | grep -v "^$" | wc -l | tr -d ' ')
+            if [[ "$count" -gt 0 ]]; then
+              echo "🔄 $manager: $count updates available"
+              if [[ "{{verbose}}" == "true" ]]; then
+                echo "-----------------------"
+                cat "$file"
+                echo "-----------------------"
+              fi
+            else
+              echo "✅ $manager: All packages up to date"
+            fi
+          else
+            echo "✅ $manager: All packages up to date"
+          fi
+        else
+          echo "❓ $manager: Status unknown"
+        fi
+        echo ""
+      }
+      
+      # Show updates for each package manager
+      show_updates "$TEMP_DIR/brew_updates.txt" "Homebrew"
+      show_updates "$TEMP_DIR/pip_updates.txt" "Python pip"
+      show_updates "$TEMP_DIR/gem_updates.txt" "Ruby gems"
+      show_updates "$TEMP_DIR/npm_updates.txt" "Node npm"
+      show_updates "$TEMP_DIR/yarn_updates.txt" "Yarn"
+      
+      # Output to file if requested
+      if [[ -n "{{output_file}}" ]]; then
+        REPORT_FILE="{{output_file}}"
+        echo "=== Package Updates Summary (${TIMESTAMP}) ===" > "$REPORT_FILE"
+        echo "" >> "$REPORT_FILE"
+        
+        for manager in "Homebrew" "Python pip" "Ruby gems" "Node npm" "Yarn"; do
+          case "$manager" in
+            "Homebrew") file="$TEMP_DIR/brew_updates.txt" ;;
+            "Python pip") file="$TEMP_DIR/pip_updates.txt" ;;
+            "Ruby gems") file="$TEMP_DIR/gem_updates.txt" ;;
+            "Node npm") file="$TEMP_DIR/npm_updates.txt" ;;
+            "Yarn") file="$TEMP_DIR/yarn_updates.txt" ;;
+          esac
+          
+          if [[ -f "$file" ]]; then
+            if grep -q "Error:" "$file"; then
+              echo "⚠️  $manager: Not installed or unavailable" >> "$REPORT_FILE"
+            elif [[ -s "$file" && ! $(grep -q "Error:" "$file") ]]; then
+              local count=$(grep -v "^Package" "$file" | grep -v "^----" | grep -v "^$" | wc -l | tr -d ' ')
+              if [[ "$count" -gt 0 ]]; then
+                echo "🔄 $manager: $count updates available" >> "$REPORT_FILE"
+                echo "-----------------------" >> "$REPORT_FILE"
+                cat "$file" >> "$REPORT_FILE"
+                echo "-----------------------" >> "$REPORT_FILE"
+              else
+                echo "✅ $manager: All packages up to date" >> "$REPORT_FILE"
+              fi
+            else
+              echo "✅ $manager: All packages up to date" >> "$REPORT_FILE"
+            fi
+          else
+            echo "❓ $manager: Status unknown" >> "$REPORT_FILE"
+          fi
+          echo "" >> "$REPORT_FILE"
+        done
+        
+        echo "Summary report saved to $REPORT_FILE"
+      fi
+      
+      # Clean up temporary directory (when not in verbose mode)
+      if [[ "{{verbose}}" != "true" ]]; then
+        rm -rf "$TEMP_DIR"
+        rm /tmp/package_update_temp_dir
+      else
+        echo "Temporary files preserved at $TEMP_DIR for inspection"
+      fi
+
+outputs:
+  - name: summary
+    description: Lists of packages that need updates across all package managers
+  - name: report_file
+    description: Path to the saved report file (if output_file was provided)
